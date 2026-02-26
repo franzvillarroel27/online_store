@@ -1,0 +1,158 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  imageUrl    String?
+  icon        String?
+  parentId    Int?
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  products    Product[]
+  parent      Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children    Category[] @relation("SubCategories")
+  createdAt   DateTime   @default(now())
+
+  @@map("categories")
+}
+
+model Product {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  description        String?
+  price              Decimal             @db.Decimal(10, 2)
+  salePrice          Decimal?            @db.Decimal(10, 2)
+  categoryId         Int
+  images             String[]            @default([])
+  stockQuantity      Int                 @default(0)
+  stockStatus        String              @default("available")
+  lowStockThreshold  Int                 @default(5)
+  sku                String?             @unique
+  weight             Decimal?            @db.Decimal(8, 2)
+  dimensions         String?
+  isActive           Boolean             @default(true)
+  isFeatured         Boolean             @default(false)
+  isNewArrival       Boolean             @default(false)
+  isBestSeller       Boolean             @default(false)
+  category           Category            @relation(fields: [categoryId], references: [id])
+  orderItems         OrderItem[]
+  reviews            Review[]
+  inventoryMovements InventoryMovement[]
+  wishlistItems      WishlistItem[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@map("products")
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  orderNumber     String      @unique
+  customerName    String
+  customerPhone   String
+  customerEmail   String?
+  deliveryAddress String
+  city            String
+  zone            String?
+  subtotal        Decimal     @db.Decimal(10, 2)
+  shippingCost    Decimal     @db.Decimal(10, 2) @default(0)
+  total           Decimal     @db.Decimal(10, 2)
+  paymentMethod   String
+  paymentStatus   String      @default("pending")
+  orderStatus     String      @default("pending")
+  notes           String?
+  items           OrderItem[]
+  payment         Payment?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  name      String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Payment {
+  id              Int       @id @default(autoincrement())
+  orderId         Int       @unique
+  amount          Decimal   @db.Decimal(10, 2)
+  method          String
+  referenceNumber String?
+  proofImageUrl   String?
+  status          String    @default("pending")
+  verifiedAt      DateTime?
+  order           Order     @relation(fields: [orderId], references: [id])
+  createdAt       DateTime  @default(now())
+
+  @@map("payments")
+}
+
+model InventoryMovement {
+  id             Int      @id @default(autoincrement())
+  productId      Int
+  type           String
+  quantityChange Int
+  quantityAfter  Int
+  notes          String?
+  product        Product  @relation(fields: [productId], references: [id])
+  createdAt      DateTime @default(now())
+
+  @@map("inventory_movements")
+}
+
+model Review {
+  id           Int      @id @default(autoincrement())
+  productId    Int
+  customerName String
+  rating       Int
+  comment      String?
+  isApproved   Boolean  @default(false)
+  product      Product  @relation(fields: [productId], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@map("reviews")
+}
+
+model WishlistItem {
+  id        Int      @id @default(autoincrement())
+  sessionId String
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([sessionId, productId])
+  @@map("wishlist_items")
+}
+
+model Coupon {
+  id             Int       @id @default(autoincrement())
+  code           String    @unique
+  discountType   String
+  discountValue  Decimal   @db.Decimal(10, 2)
+  minOrderAmount Decimal?  @db.Decimal(10, 2)
+  usageLimit     Int?
+  usageCount     Int       @default(0)
+  isActive       Boolean   @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@map("coupons")
+}
