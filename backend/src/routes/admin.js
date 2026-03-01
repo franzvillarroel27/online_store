@@ -16,4 +16,12 @@ router.delete('/products/:id', ctrl.deleteProduct);
 router.get('/orders', ctrl.getOrders);
 router.put('/orders/:id/status', ctrl.updateOrderStatus);
 
+router.get('/categories', ctrl.getCategories);
+router.post('/categories', ctrl.createCategory);
+router.put('/categories/:id', ctrl.updateCategory);
+router.delete('/categories/:id', ctrl.deleteCategory);
+
+router.get('/reviews/pending', ctrl.getPendingReviews);
+router.put('/reviews/:id', ctrl.approveReview);
+
 module.exports = router;

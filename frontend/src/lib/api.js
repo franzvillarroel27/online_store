@@ -38,6 +38,20 @@ export const api = {
   confirmPayment: (data) =>
     fetchAPI('/payments/confirm', { method: 'POST', body: JSON.stringify(data) }),
 
+  validateCoupon: (code, subtotal) =>
+    fetchAPI('/coupons/validate', { method: 'POST', body: JSON.stringify({ code, subtotal }) }),
+
+  submitReview: (productId, data) =>
+    fetchAPI(`/products/${productId}/reviews`, { method: 'POST', body: JSON.stringify(data) }),
+
+  getWishlist: (sessionId) => fetchAPI(`/wishlist?sessionId=${sessionId}`),
+
+  addToWishlist: (sessionId, productId) =>
+    fetchAPI('/wishlist', { method: 'POST', body: JSON.stringify({ sessionId, productId }) }),
+
+  removeFromWishlist: (sessionId, productId) =>
+    fetchAPI(`/wishlist/${productId}?sessionId=${sessionId}`, { method: 'DELETE' }),
+
   // Admin
   adminFetch: (endpoint, options = {}) => {
     const token = process.env.NEXT_PUBLIC_ADMIN_TOKEN;

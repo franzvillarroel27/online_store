@@ -1,12 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingBag, ChefHat, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, FolderOpen, ChefHat, LogOut } from 'lucide-react';
 
 const navLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/products', label: 'Productos', icon: Package },
   { href: '/admin/orders', label: 'Pedidos', icon: ShoppingBag },
+  { href: '/admin/categories', label: 'Categorías', icon: FolderOpen },
 ];
 
 export default function AdminLayout({ children }) {

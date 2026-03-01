@@ -202,8 +202,111 @@ const updateOrderStatus = async (req, res, next) => {
   }
 };
 
+const getCategories = async (req, res, next) => {
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: { sortOrder: 'asc' },
+      include: { _count: { select: { products: true } } }
+    });
+    res.json(categories);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const createCategory = async (req, res, next) => {
+  try {
+    const { name, description, imageUrl, icon, parentId, sortOrder } = req.body;
+    if (!name) return res.status(400).json({ error: 'Nombre requerido' });
+
+    const category = await prisma.category.create({
+      data: {
+        name: name.trim(),
+        description: description?.trim() || null,
+        imageUrl: imageUrl?.trim() || null,
+        icon: icon?.trim() || null,
+        parentId: parentId ? parseInt(parentId) : null,
+        sortOrder: parseInt(sortOrder) || 0
+      }
+    });
+    res.status(201).json(category);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateCategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, description, imageUrl, icon, parentId, sortOrder, isActive } = req.body;
+
+    const data = {};
+    if (name !== undefined) data.name = name.trim();
+    if (description !== undefined) data.description = description?.trim() || null;
+    if (imageUrl !== undefined) data.imageUrl = imageUrl?.trim() || null;
+    if (icon !== undefined) data.icon = icon?.trim() || null;
+    if (parentId !== undefined) data.parentId = parentId ? parseInt(parentId) : null;
+    if (sortOrder !== undefined) data.sortOrder = parseInt(sortOrder);
+    if (isActive !== undefined) data.isActive = Boolean(isActive);
+
+    const category = await prisma.category.update({
+      where: { id: parseInt(id) },
+      data
+    });
+    res.json(category);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const deleteCategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await prisma.category.update({
+      where: { id: parseInt(id) },
+      data: { isActive: false }
+    });
+    res.json({ message: 'Categoría desactivada' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getPendingReviews = async (req, res, next) => {
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { isApproved: false },
+      include: { product: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(reviews);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const approveReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { approved } = req.body;
+    if (approved === false) {
+      await prisma.review.delete({ where: { id: parseInt(id) } });
+      return res.json({ message: 'Reseña rechazada y eliminada' });
+    }
+    const review = await prisma.review.update({
+      where: { id: parseInt(id) },
+      data: { isApproved: true }
+    });
+    res.json(review);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getDashboard, getLowStockProducts,
   getProducts, createProduct, updateProduct, deleteProduct,
-  getOrders, updateOrderStatus
+  getOrders, updateOrderStatus,
+  getCategories, createCategory, updateCategory, deleteCategory,
+  getPendingReviews, approveReview
 };

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ShoppingCart, Bell, Star, Minus, Plus } from 'lucide-react';
+import { ShoppingCart, Bell, Star, Minus, Plus, Send } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import ImageGallery from '@/components/product/ImageGallery';
 import StockIndicator from '@/components/product/StockIndicator';
@@ -16,6 +16,25 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ customerName: '', rating: 5, comment: '' });
+  const [reviewSent, setReviewSent] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    setReviewError('');
+    setReviewLoading(true);
+    try {
+      await api.submitReview(id, reviewForm);
+      setReviewSent(true);
+      setReviewForm({ customerName: '', rating: 5, comment: '' });
+    } catch (err) {
+      setReviewError(err.message);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
 
   useEffect(() => {
     api.getProduct(id)
@@ -226,6 +245,73 @@ export default function ProductPage() {
           </div>
         </section>
       )}
+
+      {/* Review form */}
+      <section className="mt-12 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Escribir una Reseña</h2>
+        {reviewSent ? (
+          <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4 text-green-700">
+            <Send size={18} />
+            <p className="font-medium">¡Gracias por tu reseña! Será publicada después de revisión.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmitReview} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tu nombre *</label>
+                <input
+                  required
+                  value={reviewForm.customerName}
+                  onChange={e => setReviewForm(f => ({ ...f, customerName: e.target.value }))}
+                  placeholder="Juan Pérez"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Calificación *</label>
+                <div className="flex gap-1 mt-1">
+                  {[1, 2, 3, 4, 5].map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setReviewForm(f => ({ ...f, rating: s }))}
+                      className="focus:outline-none"
+                    >
+                      <Star
+                        size={28}
+                        className={s <= reviewForm.rating
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300 hover:text-yellow-300'}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Comentario (opcional)</label>
+              <textarea
+                value={reviewForm.comment}
+                onChange={e => setReviewForm(f => ({ ...f, comment: e.target.value }))}
+                rows={3}
+                placeholder="¿Qué te pareció este producto?"
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 resize-none"
+              />
+            </div>
+            {reviewError && (
+              <p className="text-sm text-red-600">{reviewError}</p>
+            )}
+            <button
+              type="submit"
+              disabled={reviewLoading}
+              className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm px-6 py-2.5 rounded-xl transition-colors disabled:opacity-60"
+            >
+              <Send size={15} />
+              {reviewLoading ? 'Enviando...' : 'Enviar Reseña'}
+            </button>
+          </form>
+        )}
+      </section>
 
       {/* Related products */}
       <RelatedProducts products={product.related || []} />

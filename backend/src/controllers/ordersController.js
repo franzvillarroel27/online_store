@@ -47,7 +47,28 @@ const createOrder = async (req, res, next) => {
 
     // Costo de envío (por zona)
     const shippingCost = city.toLowerCase() === 'la paz' ? 15 : 25;
-    const total = subtotal + shippingCost;
+
+    // Aplicar cupón de descuento si se proporcionó
+    let discount = 0;
+    let appliedCouponCode = null;
+    if (couponCode) {
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: couponCode.trim().toUpperCase() }
+      });
+      if (coupon && coupon.isActive &&
+          !(coupon.expiresAt && new Date() > new Date(coupon.expiresAt)) &&
+          !(coupon.usageLimit !== null && coupon.usageCount >= coupon.usageLimit) &&
+          !(coupon.minOrderAmount && subtotal < parseFloat(coupon.minOrderAmount))) {
+        if (coupon.discountType === 'percentage') {
+          discount = (subtotal * parseFloat(coupon.discountValue)) / 100;
+        } else {
+          discount = Math.min(parseFloat(coupon.discountValue), subtotal);
+        }
+        appliedCouponCode = coupon.code;
+      }
+    }
+
+    const total = subtotal - discount + shippingCost;
 
     const orderNumber = `CS-${Date.now()}-${uuidv4().slice(0, 4).toUpperCase()}`;
 
@@ -59,7 +80,7 @@ const createOrder = async (req, res, next) => {
           customerName, customerPhone, customerEmail,
           deliveryAddress, city, zone,
           subtotal, shippingCost, total,
-          paymentMethod, notes,
+          paymentMethod, notes: notes ? `${notes}${appliedCouponCode ? ` | Cupón: ${appliedCouponCode} (-Bs.${discount.toFixed(2)})` : ''}` : (appliedCouponCode ? `Cupón: ${appliedCouponCode} (-Bs.${discount.toFixed(2)})` : null),
           items: { create: orderItems }
         },
         include: { items: true }
@@ -73,12 +94,20 @@ const createOrder = async (req, res, next) => {
       return newOrder;
     });
 
+    // Incrementar uso del cupón si se aplicó
+    if (appliedCouponCode) {
+      prisma.coupon.update({
+        where: { code: appliedCouponCode },
+        data: { usageCount: { increment: 1 } }
+      }).catch(err => console.error('Error actualizando cupón:', err.message));
+    }
+
     // Notificar al vendedor (async, no bloquea)
     notificationService.notifyNewOrder(order).catch(err =>
       console.error('Error enviando notificación:', err.message)
     );
 
-    res.status(201).json({ order, message: 'Pedido creado exitosamente' });
+    res.status(201).json({ order, message: 'Pedido creado exitosamente', discount });
   } catch (err) {
     next(err);
   }

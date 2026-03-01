@@ -133,4 +133,42 @@ const searchProducts = async (req, res, next) => {
   }
 };
 
-module.exports = { getProducts, getFeaturedProducts, getProductById, searchProducts };
+const submitReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { customerName, rating, comment } = req.body;
+
+    if (!customerName || !rating) {
+      return res.status(400).json({ error: 'Nombre y calificación son requeridos' });
+    }
+
+    const ratingNum = parseInt(rating);
+    if (ratingNum < 1 || ratingNum > 5) {
+      return res.status(400).json({ error: 'La calificación debe ser entre 1 y 5' });
+    }
+
+    const product = await prisma.product.findUnique({ where: { id: parseInt(id) } });
+    if (!product || !product.isActive) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    const review = await prisma.review.create({
+      data: {
+        productId: parseInt(id),
+        customerName: customerName.trim(),
+        rating: ratingNum,
+        comment: comment?.trim() || null,
+        isApproved: false
+      }
+    });
+
+    res.status(201).json({
+      message: 'Reseña enviada. Será revisada antes de publicarse.',
+      review
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getProducts, getFeaturedProducts, getProductById, searchProducts, submitReview };

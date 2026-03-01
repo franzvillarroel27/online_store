@@ -1,11 +1,45 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { api } from '@/lib/api';
+
+function getSessionId() {
+  if (typeof window === 'undefined') return null;
+  let id = localStorage.getItem('cs_session_id');
+  if (!id) {
+    id = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    localStorage.setItem('cs_session_id', id);
+  }
+  return id;
+}
 
 export default function ProductCard({ product }) {
   const { addItem } = useCart();
+  const [wished, setWished] = useState(false);
+
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('cs_wishlist') || '[]');
+    setWished(saved.includes(product.id));
+  }, [product.id]);
+
+  const toggleWishlist = (e) => {
+    e.preventDefault();
+    const sessionId = getSessionId();
+    if (!sessionId) return;
+    const saved = JSON.parse(localStorage.getItem('cs_wishlist') || '[]');
+    if (wished) {
+      localStorage.setItem('cs_wishlist', JSON.stringify(saved.filter(id => id !== product.id)));
+      setWished(false);
+      api.removeFromWishlist(sessionId, product.id).catch(() => {});
+    } else {
+      localStorage.setItem('cs_wishlist', JSON.stringify([...saved, product.id]));
+      setWished(true);
+      api.addToWishlist(sessionId, product.id).catch(() => {});
+    }
+  };
   const isOutOfStock = product.stockStatus === 'out_of_stock';
   const isLowStock = product.stockStatus === 'low_stock';
   const hasDiscount = product.salePrice && parseFloat(product.salePrice) < parseFloat(product.price);
@@ -56,9 +90,13 @@ export default function ProductCard({ product }) {
         </div>
 
         {/* Wishlist */}
-        <button className="absolute top-2 right-2 p-1.5 bg-white/80 rounded-full shadow-sm
-                           hover:bg-white hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-          <Heart size={15} />
+        <button
+          onClick={toggleWishlist}
+          className={`absolute top-2 right-2 p-1.5 bg-white/80 rounded-full shadow-sm
+                      transition-colors opacity-0 group-hover:opacity-100
+                      ${wished ? 'opacity-100 text-red-500' : 'hover:bg-white hover:text-red-500'}`}
+        >
+          <Heart size={15} className={wished ? 'fill-red-500' : ''} />
         </button>
       </div>
 

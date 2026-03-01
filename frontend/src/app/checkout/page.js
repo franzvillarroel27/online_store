@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart, CreditCard, Truck, CheckCircle, AlertCircle } from 'lucide-react';
+import { ShoppingCart, CreditCard, Truck, CheckCircle, AlertCircle, Tag, X } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { api } from '@/lib/api';
 
@@ -37,9 +37,34 @@ export default function CheckoutPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [couponInput, setCouponInput] = useState('');
+  const [coupon, setCoupon] = useState(null); // { code, discountType, discountValue, discount }
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const shipping = form.city.toLowerCase() === 'la paz' ? 15 : 25;
-  const total = subtotal + shipping;
+  const discount = coupon?.discount || 0;
+  const total = subtotal - discount + shipping;
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setCouponError('');
+    setCouponLoading(true);
+    try {
+      const res = await api.validateCoupon(couponInput, subtotal);
+      setCoupon(res.coupon);
+      setCouponInput('');
+    } catch (err) {
+      setCouponError(err.message);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCoupon(null);
+    setCouponError('');
+  };
 
   const handleChange = (e) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -64,6 +89,7 @@ export default function CheckoutPage() {
       const { order } = await api.createOrder({
         ...form,
         items: orderItems,
+        couponCode: coupon?.code || null,
       });
 
       clearCart();
@@ -243,12 +269,58 @@ export default function CheckoutPage() {
                 })}
               </div>
 
+              {/* Coupon */}
+              <div className="border-t border-gray-100 pt-4">
+                {coupon ? (
+                  <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2 text-green-700">
+                      <Tag size={14} />
+                      <span className="font-semibold">{coupon.code}</span>
+                      <span>-Bs. {coupon.discount.toFixed(2)}</span>
+                    </div>
+                    <button onClick={handleRemoveCoupon} className="text-green-600 hover:text-red-500 transition-colors">
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex gap-2">
+                      <input
+                        value={couponInput}
+                        onChange={e => setCouponInput(e.target.value.toUpperCase())}
+                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleApplyCoupon())}
+                        placeholder="Código de cupón"
+                        className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                      >
+                        {couponLoading ? '...' : 'Aplicar'}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-xs text-red-600 mt-1">{couponError}</p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-1">Prueba: BIENVENIDO10, COCINA20, ENVIOGRATIS</p>
+                  </div>
+                )}
+              </div>
+
               {/* Totals */}
               <div className="border-t border-gray-100 pt-4 space-y-2 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
                   <span className="font-semibold text-gray-900">Bs. {subtotal.toFixed(2)}</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Descuento ({coupon.code})</span>
+                    <span className="font-semibold">-Bs. {discount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-gray-600">
                   <span>Envío a {form.city}</span>
                   <span className="font-semibold text-gray-900">Bs. {shipping.toFixed(2)}</span>
