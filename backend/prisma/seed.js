@@ -2,12 +2,12 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const categories = [
-  { id: 1, name: 'Ollas y Cacerolas', description: 'Ollas, cacerolas y todo para hervir y cocinar', icon: '🥘', imageUrl: 'https://images.unsplash.com/photo-1584990347449-39e9e6a5f5d1?w=400', sortOrder: 1 },
-  { id: 2, name: 'Sartenes y Woks', description: 'Sartenes, woks y paillas antiadherentes', icon: '🍳', imageUrl: 'https://images.unsplash.com/photo-1594226801341-41427b4e5c22?w=400', sortOrder: 2 },
-  { id: 3, name: 'Cubiertos y Cucharas', description: 'Juegos de cubiertos, cucharones y espátulas', icon: '🥄', imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400', sortOrder: 3 },
-  { id: 4, name: 'Vasos y Tazas', description: 'Vasos, tazas, jarras y todo para beber', icon: '☕', imageUrl: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400', sortOrder: 4 },
-  { id: 5, name: 'Tablas y Utensilios', description: 'Tablas de cortar, ralladores, peladoras y más', icon: '🔪', imageUrl: 'https://images.unsplash.com/photo-1617906311879-0bfd7a77ea8a?w=400', sortOrder: 5 },
-  { id: 6, name: 'Electrodomésticos Pequeños', description: 'Licuadoras, tostadoras, hervidores y más', icon: '⚡', imageUrl: 'https://images.unsplash.com/photo-1556909114-a4bc3e5e4a20?w=400', sortOrder: 6 },
+  { id: 1, name: 'Ollas y Cacerolas', description: 'Ollas, cacerolas y todo para hervir y cocinar', icon: '🥘', imageUrl: 'https://images.unsplash.com/photo-1584990347449-39e9e6a5f5d1?w=800&q=85', sortOrder: 1 },
+  { id: 2, name: 'Sartenes y Woks', description: 'Sartenes, woks y paillas antiadherentes', icon: '🍳', imageUrl: 'https://images.unsplash.com/photo-1588868800467-6c1e7e4ef5f7?w=800&q=85', sortOrder: 2 },
+  { id: 3, name: 'Cubiertos y Cucharas', description: 'Juegos de cubiertos, cucharones y espátulas', icon: '🥄', imageUrl: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&q=85', sortOrder: 3 },
+  { id: 4, name: 'Vasos y Tazas', description: 'Vasos, tazas, jarras y todo para beber', icon: '☕', imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&q=85', sortOrder: 4 },
+  { id: 5, name: 'Tablas y Utensilios', description: 'Tablas de cortar, ralladores, peladoras y más', icon: '🔪', imageUrl: 'https://images.unsplash.com/photo-1617906311879-0bfd7a77ea8a?w=800&q=85', sortOrder: 5 },
+  { id: 6, name: 'Electrodomésticos Pequeños', description: 'Licuadoras, tostadoras, hervidores y más', icon: '⚡', imageUrl: 'https://images.unsplash.com/photo-1570222094114-d054a817e56b?w=800&q=85', sortOrder: 6 },
 ];
 
 const products = [

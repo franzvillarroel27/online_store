@@ -4,65 +4,135 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* ─── Base ─────────────────────────────────────────────── */
 @layer base {
-  * {
-    box-sizing: border-box;
-  }
-  html {
-    scroll-behavior: smooth;
-  }
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    background-color: #f9fafb;
-    color: #111827;
+    background-color: #F8F5F1;   /* warm parchment */
+    color: #1A1A1E;
+    letter-spacing: -0.01em;
   }
+
+  h1, h2, h3, h4, h5 { letter-spacing: -0.025em; }
 }
 
+/* ─── Components ────────────────────────────────────────── */
 @layer components {
+
+  /* Buttons — iOS pill style */
   .btn-primary {
-    @apply bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold
-           hover:bg-primary-700 active:bg-primary-800 transition-colors duration-200
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-primary-600 text-white px-6 py-3 rounded-full font-semibold text-sm
+           hover:bg-primary-700 active:scale-[0.97] transition-all duration-200
+           shadow-ios disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
   }
   .btn-secondary {
-    @apply border-2 border-primary-600 text-primary-600 px-6 py-3 rounded-lg font-semibold
-           hover:bg-primary-50 transition-colors duration-200;
+    @apply border border-primary-600/40 text-primary-600 bg-primary-50 px-6 py-3 rounded-full
+           font-semibold text-sm hover:bg-primary-100 active:scale-[0.97]
+           transition-all duration-200;
   }
+  .btn-ghost {
+    @apply text-gray-600 px-4 py-2.5 rounded-full font-medium text-sm
+           hover:bg-warm-200 active:scale-[0.97] transition-all duration-200;
+  }
+
+  /* Card — iOS surface */
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden;
+    @apply bg-white rounded-ios overflow-hidden shadow-ios;
   }
-  .badge-stock {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  .card-lg {
+    @apply bg-white rounded-ios-lg overflow-hidden shadow-ios-md;
+  }
+
+  /* iOS-style input */
+  .input-ios {
+    @apply w-full bg-warm-100 border-0 rounded-ios px-4 py-3 text-sm
+           focus:outline-none focus:ring-2 focus:ring-primary-500/30
+           placeholder:text-warm-400 transition-all duration-200;
+  }
+
+  /* Pill badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+  .badge-red    { @apply bg-red-100 text-red-700; }
+  .badge-green  { @apply bg-green-100 text-green-700; }
+  .badge-amber  { @apply bg-amber-100 text-amber-700; }
+  .badge-gray   { @apply bg-gray-100 text-gray-600; }
+  .badge-gold   { @apply bg-gold-400/20 text-gold-600; }
+  .badge-sage   { @apply bg-sage-100 text-sage-700; }
+
+  /* Frosted glass */
+  .glass {
+    @apply bg-white/85 backdrop-blur-xl border border-white/40;
+  }
+  .glass-dark {
+    @apply bg-gray-900/75 backdrop-blur-xl border border-white/10;
+  }
+
+  /* Section titles */
+  .section-title {
+    @apply text-xl sm:text-2xl font-bold text-gray-900 tracking-tight;
+  }
+  .section-subtitle {
+    @apply text-sm text-warm-500 mt-0.5;
   }
 }
 
-/* Swiper custom styles */
+/* ─── Swiper overrides ──────────────────────────────────── */
+.swiper-pagination-bullet {
+  background-color: rgba(255,255,255,0.5) !important;
+  width: 6px !important;
+  height: 6px !important;
+  transition: all 0.3s ease !important;
+}
 .swiper-pagination-bullet-active {
-  background-color: #ea580c !important;
+  background-color: #fff !important;
+  width: 20px !important;
+  border-radius: 3px !important;
 }
 .swiper-button-next,
 .swiper-button-prev {
   color: white !important;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.25) !important;
+  backdrop-filter: blur(8px);
   border-radius: 50%;
-  width: 40px !important;
-  height: 40px !important;
+  width: 38px !important;
+  height: 38px !important;
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: background 0.2s ease !important;
+}
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background: rgba(0,0,0,0.45) !important;
 }
 .swiper-button-next::after,
 .swiper-button-prev::after {
-  font-size: 18px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
 }
 
-/* Loader */
+/* ─── Loader ────────────────────────────────────────────── */
 .loader {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #ea580c;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #F0EBE3;
+  border-top-color: #C4522A;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.75s linear infinite;
 }
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
+
+/* ─── Scrollbar (webkit) ────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBBFB3; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #A89A8E; }
+
+/* ─── Selection ─────────────────────────────────────────── */
+::selection { background: #FAD0B5; color: #6A2A16; }

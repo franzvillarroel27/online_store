@@ -5,10 +5,17 @@ import { useRouter } from 'next/navigation';
 import { ShoppingCart, Search, Menu, X, ChefHat, User } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
+const NAV_LINKS = [
+  { href: '/',          label: 'Inicio'    },
+  { href: '/tiendas',   label: 'Tiendas'   },
+  { href: '/servicios', label: 'Servicios' },
+];
+
 export default function Navbar() {
   const { totalItems, setIsOpen } = useCart();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [search, setSearch] = useState('');
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const [search, setSearch]       = useState('');
+  const [focused, setFocused]     = useState(false);
   const router = useRouter();
 
   const handleSearch = (e) => {
@@ -16,108 +23,116 @@ export default function Navbar() {
     if (search.trim()) {
       router.push(`/search?q=${encodeURIComponent(search.trim())}`);
       setSearch('');
+      setMenuOpen(false);
     }
   };
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      {/* Top bar */}
-      <div className="bg-primary-600 text-white text-xs text-center py-1.5 px-4">
-        🚚 Envío gratis en compras mayores a Bs. 350 | 📞 WhatsApp: +591 700-COCINA
+    <header className="glass sticky top-0 z-50 shadow-ios">
+      {/* Promo strip */}
+      <div className="bg-primary-600 text-white text-xs text-center py-1.5 px-4 font-medium tracking-wide">
+        🚚 Envío gratis en compras mayores a Bs.&nbsp;350&nbsp;&nbsp;·&nbsp;&nbsp;📞 WhatsApp: +591 700-COCINA
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-4 h-16">
+        <div className="flex items-center gap-3 h-[60px]">
+
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="bg-primary-600 text-white p-1.5 rounded-lg">
-              <ChefHat size={22} />
+          <Link href="/" className="flex items-center gap-2 shrink-0 group">
+            <div className="bg-primary-600 text-white p-[7px] rounded-[10px] shadow-ios
+                            group-hover:bg-primary-700 transition-colors duration-200">
+              <ChefHat size={20} />
             </div>
-            <span className="font-bold text-xl text-gray-900">
+            <span className="font-bold text-[18px] text-gray-900 tracking-tight">
               Cocina<span className="text-primary-600">Shop</span>
             </span>
           </Link>
 
-          {/* Search bar */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-xl hidden sm:flex">
-            <div className="relative w-full">
+          {/* Search — desktop */}
+          <form onSubmit={handleSearch} className="flex-1 max-w-lg hidden sm:flex mx-2">
+            <div className={`relative w-full transition-all duration-200 ${focused ? 'scale-[1.01]' : ''}`}>
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-warm-400 pointer-events-none" />
               <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Buscar ollas, sartenes, cubiertos..."
-                className="w-full border border-gray-200 rounded-lg pl-4 pr-10 py-2.5 text-sm
-                           focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                placeholder="Buscar ollas, sartenes, cubiertos…"
+                className="input-ios pl-9 pr-4 rounded-full"
               />
-              <button type="submit" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-600">
-                <Search size={18} />
-              </button>
             </div>
           </form>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
-            <Link href="/" className="hover:text-primary-600 transition-colors">Inicio</Link>
-            <Link href="/tiendas" className="hover:text-primary-600 transition-colors">Tiendas</Link>
-            <Link href="/servicios" className="hover:text-primary-600 transition-colors">Servicios</Link>
-            <Link href="/mi-cuenta" className="hover:text-primary-600 transition-colors flex items-center gap-1">
-              <User size={16} /> Mi Cuenta
+          {/* Desktop nav links */}
+          <nav className="hidden md:flex items-center gap-1 ml-auto">
+            {NAV_LINKS.map(({ href, label }) => (
+              <Link key={href} href={href} className="btn-ghost text-[13.5px]">
+                {label}
+              </Link>
+            ))}
+            <Link href="/mi-cuenta" className="btn-ghost text-[13.5px] flex items-center gap-1.5">
+              <User size={14} /> Mi Cuenta
             </Link>
           </nav>
 
           {/* Cart button */}
           <button
             onClick={() => setIsOpen(true)}
-            className="relative flex items-center gap-1.5 bg-primary-600 text-white px-4 py-2 rounded-lg
-                       hover:bg-primary-700 transition-colors text-sm font-medium shrink-0"
+            className="relative flex items-center gap-2 bg-primary-600 hover:bg-primary-700
+                       active:scale-95 text-white pl-4 pr-5 py-2.5 rounded-full shadow-ios
+                       transition-all duration-200 text-sm font-semibold shrink-0"
           >
-            <ShoppingCart size={18} />
+            <ShoppingCart size={17} />
             <span className="hidden sm:inline">Carrito</span>
             {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full
-                               w-5 h-5 flex items-center justify-center font-bold">
-                {totalItems > 99 ? '99+' : totalItems}
+              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px]
+                               rounded-full w-[18px] h-[18px] flex items-center justify-center
+                               font-bold shadow-sm border-2 border-white">
+                {totalItems > 9 ? '9+' : totalItems}
               </span>
             )}
           </button>
 
-          {/* Mobile menu button */}
-          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-gray-700">
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden p-2 rounded-full hover:bg-warm-200 transition-colors text-gray-700"
+          >
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
 
         {/* Mobile search */}
         <div className="sm:hidden pb-3">
           <form onSubmit={handleSearch} className="relative">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-warm-400 pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar productos..."
-              className="w-full border border-gray-200 rounded-lg pl-4 pr-10 py-2.5 text-sm
-                         focus:outline-none focus:border-primary-500"
+              placeholder="Buscar productos…"
+              className="input-ios pl-9 rounded-full"
             />
-            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <Search size={18} />
-            </button>
           </form>
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile dropdown menu */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-3">
-          {['/', '/tiendas', '/servicios', '/mi-cuenta'].map((href, i) => {
-            const labels = ['Inicio', 'Tiendas', 'Servicios', 'Mi Cuenta'];
-            return (
-              <Link key={href} href={href} onClick={() => setMenuOpen(false)}
-                className="block text-gray-700 hover:text-primary-600 font-medium py-1">
-                {labels[i]}
-              </Link>
-            );
-          })}
-        </div>
+        <nav className="md:hidden bg-white/95 backdrop-blur-xl border-t border-warm-200 px-5 py-3 space-y-0.5">
+          {[...NAV_LINKS, { href: '/mi-cuenta', label: 'Mi Cuenta' }].map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center py-3 text-gray-700 hover:text-primary-600
+                         font-medium text-[15px] border-b border-warm-100 last:border-0 transition-colors"
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
       )}
     </header>
   );
